@@ -197,8 +197,8 @@ const STATS = [
 
 // ─── Typewriter Hook ────────────────────────────────────────────────────────
 
-function useTypewriter(lines, speed = 45) {
-  const [displayed, setDisplayed] = useState([]);
+function useTypewriter(lines: string[], speed: number = 45) {
+  const [displayed, setDisplayed] = useState<string[]>([]);
   const [lineIdx, setLineIdx] = useState(0);
   const [charIdx, setCharIdx] = useState(0);
   const [done, setDone] = useState(false);
@@ -229,7 +229,7 @@ function useTypewriter(lines, speed = 45) {
 
 // ─── Animated Counter ───────────────────────────────────────────────────────
 
-function Counter({ value, label }) {
+function Counter({ value, label }: { value: string; label: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
   const [count, setCount] = useState("0");
@@ -431,18 +431,40 @@ function HeroTerminal() {
 // ─── Contact Form ────────────────────────────────────────────────────────────
 
 function ContactForm() {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [status, setStatus] = useState("idle"); // idle | sending | success | error
+  const [form, setForm] = useState<{
+    name: string;
+    email: string;
+    message: string;
+  }>({
+    name: "",
+    email: "",
+    message: "",
+  });
 
-  const handleSubmit = async (e) => {
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle");
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
+
     setStatus("sending");
+
     try {
-      const res = await fetch("https://formspree.io/f/arnoldedwinpro@gmail.com", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(form),
-      });
+      const res = await fetch(
+        "https://formspree.io/f/xnjrrjag",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(form),
+        }
+      );
+
       setStatus(res.ok ? "success" : "error");
     } catch {
       setStatus("error");
@@ -454,9 +476,15 @@ function ContactForm() {
       <div className="rounded-3xl border border-green-500/30 bg-green-500/10 backdrop-blur-xl p-10 flex flex-col items-center justify-center gap-4 min-h-[400px]">
         <CheckCircle size={52} className="text-green-400" />
         <h3 className="text-2xl font-bold">Message envoyé !</h3>
-        <p className="text-gray-400 text-center">Je vous répondrai dans les plus brefs délais.</p>
+        <p className="text-gray-400 text-center">
+          Je vous répondrai dans les plus brefs délais.
+        </p>
+
         <button
-          onClick={() => { setStatus("idle"); setForm({ name: "", email: "", message: "" }); }}
+          onClick={() => {
+            setStatus("idle");
+            setForm({ name: "", email: "", message: "" });
+          }}
           className="mt-4 border border-white/10 px-6 py-3 rounded-xl hover:border-cyan-400 hover:text-cyan-400 transition"
         >
           Envoyer un autre message
@@ -466,57 +494,86 @@ function ContactForm() {
   }
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-10">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-10"
+    >
       <div className="space-y-6">
+
         <div>
-          <label className="block mb-3 text-sm text-gray-400">Nom</label>
+          <label className="block mb-3 text-sm text-gray-400">
+            Nom
+          </label>
+
           <input
             type="text"
             placeholder="Votre nom"
             value={form.name}
-            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setForm((f) => ({ ...f, name: e.target.value }))
+            }
             className="w-full rounded-2xl bg-black/40 border border-white/10 px-5 py-4 outline-none focus:border-cyan-400 transition text-white placeholder-gray-600"
             required
           />
         </div>
+
         <div>
-          <label className="block mb-3 text-sm text-gray-400">Email</label>
+          <label className="block mb-3 text-sm text-gray-400">
+            Email
+          </label>
+
           <input
             type="email"
             placeholder="Votre email"
             value={form.email}
-            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setForm((f) => ({ ...f, email: e.target.value }))
+            }
             className="w-full rounded-2xl bg-black/40 border border-white/10 px-5 py-4 outline-none focus:border-cyan-400 transition text-white placeholder-gray-600"
             required
           />
         </div>
+
         <div>
-          <label className="block mb-3 text-sm text-gray-400">Message</label>
+          <label className="block mb-3 text-sm text-gray-400">
+            Message
+          </label>
+
           <textarea
             rows={5}
             placeholder="Votre message..."
             value={form.message}
-            onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setForm((f) => ({ ...f, message: e.target.value }))
+            }
             className="w-full rounded-2xl bg-black/40 border border-white/10 px-5 py-4 outline-none focus:border-cyan-400 transition resize-none text-white placeholder-gray-600"
             required
           />
         </div>
+
         {status === "error" && (
-          <p className="text-red-400 text-sm">Une erreur est survenue. Essayez par email directement.</p>
+          <p className="text-red-400 text-sm">
+            Une erreur est survenue. Essayez par email directement.
+          </p>
         )}
+
         <button
-          onClick={handleSubmit}
+          type="submit"
           disabled={status === "sending"}
           className="w-full flex items-center justify-center gap-2 bg-cyan-400 text-black font-bold py-4 rounded-2xl hover:bg-cyan-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {status === "sending" ? (
-            <span className="animate-pulse">Envoi en cours...</span>
+            <span className="animate-pulse">
+              Envoi en cours...
+            </span>
           ) : (
-            <>Envoyer le message <ArrowRight size={16} /></>
+            <>
+              Envoyer le message <ArrowRight size={16} />
+            </>
           )}
         </button>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -844,7 +901,7 @@ export default function Home() {
 
             <div className="mt-8 p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-green-400 text-sm font-mono">Disponible pour stage — 2025</span>
+              <span className="text-green-400 text-sm font-mono">Disponible pour stage - 2026</span>
             </div>
           </div>
 
@@ -861,7 +918,7 @@ export default function Home() {
             HACKTHUS
           </div>
           <p className="text-gray-600 text-xs font-mono">
-            © 2026 Arnold Edwin FOMEDONG — Cybersecurity Engineer Portfolio
+            © 2026 Arnold Edwin FOMEDONG - Cybersecurity Engineer 
           </p>
           <div className="flex gap-4">
             <a href="https://github.com/hackthus" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-cyan-400 transition">
