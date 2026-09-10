@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import type { ReactElement, FormEvent, ChangeEvent } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import {
@@ -62,10 +63,11 @@ interface ExperienceItem {
 }
 
 interface Cert {
-  icon:  string;
+  image: string;
   title: string;
   sub:   string;
   done:  boolean;
+  url?:  string;
 }
 
 interface Stat {
@@ -83,18 +85,21 @@ interface TerminalLine {
 type FormStatus = "idle" | "sending" | "success" | "error";
 
 interface FormState {
-  name:    string;
-  email:   string;
-  message: string;
+  name:     string;
+  email:    string;
+  message:  string;
+  // Champ "piège à bots" — doit rester vide. Les bots le remplissent souvent automatiquement.
+  website:  string;
 }
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const NAV_LINKS: NavLink[] = [
-  { label: "À propos",   href: "#about"      },
-  { label: "Projets",    href: "#projects"   },
-  { label: "Expérience", href: "#experience" },
-  { label: "Contact",    href: "#contact"    },
+  { label: "À propos",        href: "#about"           },
+  { label: "Projets",         href: "#projects"        },
+  { label: "Expérience",      href: "#experience"      },
+  { label: "Certifications",  href: "#certifications"  },
+  { label: "Contact",         href: "#contact"         },
 ];
 
 const SKILLS: Skill[] = [
@@ -125,8 +130,6 @@ const SKILLS: Skill[] = [
 ];
 
 const PROJECTS: Project[] = [
-
-  
   {
     image: "/images/zero-trust.png",
     gradient: "from-cyan-500/20 to-blue-500/10",
@@ -136,7 +139,7 @@ const PROJECTS: Project[] = [
     desc: "Infrastructure réseau sécurisée avec segmentation, VPN, firewall et architecture Zero Trust complète.",
     url: "https://github.com/Hackthus/Zero-Trust",
   },
-   {
+  {
     image: "/images/cybersecurity-wiki.png",
     gradient: "from-cyan-500/20 to-purple-500/10",
     title: "Cybersecurity Wiki",
@@ -145,7 +148,16 @@ const PROJECTS: Project[] = [
     desc: "Wiki et documentation cybersécurité pour partage de connaissances techniques.",
     url: "https://hackthus.github.io/The-Hackers-237",
   },
-    {
+  {
+    image: "/images/iam-authentik-architecture.png",
+    gradient: "from-emerald-500/20 to-cyan-500/10",
+    title: "Modern IAM Platform with Authentik & OPA",
+    status: "Terminé",
+    tags: ["Docker Compose", "Docker", "Cloud", "Authentik", "OpenID Connect", "OAuth2", "Open Policy Agent", "RBAC"],
+    desc: "Conception et déploiement d'une plateforme IAM moderne conteneurisée intégrant Authentik comme fournisseur d'identité, OAuth2/OpenID Connect, JWT sécurisés, une API Flask protégée et Open Policy Agent (OPA) pour un contrôle d'accès RBAC externalisé.",
+    url: "https://github.com/Hackthus/iam-lab",
+  },
+  {
     image: "/images/docker-wordpress-stack.png",
     gradient: "from-sky-500/20 to-blue-500/10",
     title: "Docker WordPress Infrastructure",
@@ -154,7 +166,6 @@ const PROJECTS: Project[] = [
     desc: "Déploiement d'une infrastructure WordPress complète conteneurisée avec Docker Compose intégrant MySQL, Redis, phpMyAdmin et automatisation via WP-CLI.",
     url: "https://github.com/Hackthus/docker-wordpress-stack",
   },
-
   {
     image: "/images/wreath-network.png",
     gradient: "from-purple-500/20 to-cyan-500/10",
@@ -164,7 +175,6 @@ const PROJECTS: Project[] = [
     desc: "Pentest complet d'un environnement Microsoft Windows + Web avec exploitation Active Directory.",
     url: "https://github.com/Hackthus/Wreath-Network",
   },
-
   {
     image: "/images/mfa-linux-server.png",
     gradient: "from-green-500/20 to-cyan-500/10",
@@ -231,23 +241,44 @@ const PROJECTS: Project[] = [
 ];
 
 const EXPERIENCE: ExperienceItem[] = [
-  { period:"2025 — Présent",     side:"left",  title:"Master 2 Cybersécurité",                       org:"Nexa Digital School de Paris France",        desc:"Spécialisation en cybersécurité offensive, administration systèmes, réseaux sécurisés et cloud." },
-  { period:"2025",               side:"right", title:"Master 1 Chef Projet Cybersécurité",            org:"Cyber Management School de Paris France",    desc:"Gouvernance cybersécurité, gestion des risques et sécurité des systèmes d'information." },
-  { period:"2023 - 2024",        side:"left",  title:"Licence Administration Systèmes & DevOps",      org:"École IT Orléans France",                  desc:"Administration Linux/Windows, virtualisation, cloud computing et automatisation." },
-  { period:"2021 - 2022",        side:"right", title:"DEC Réseautique & Sécurité Informatique",       org:"CCNB - Canada",                       desc:"Fondamentaux réseaux, sécurité et infrastructure." },
-  { period:"Mai - Oct 2022",     side:"left",  title:"Stage Administrateur Systèmes & Réseaux",       org:"Edil Techno",                         desc:"Administration Linux/Windows Server, gestion AD & GPO, déploiement Nessus, scripts PowerShell/Bash/Python, supervision infrastructure.", isJob:true },
-  { period:"Octobre - Juin 2021",side:"right", title:"L1 Science économiques et gestion appliquées",  org:"Université de Douala - Douala",       desc:"Formation en économie, gestion et analyse des organisations. Acquisition des fondamentaux en management, comptabilité, statistiques." },
+  { period:"Mai 2026 - présent",  side:"left",  title:"Stage Technicien IT", org:"METM",  desc:"Déploiement des systèmes via réseau PXE, utilisation de Proxmox, supports utilisateurs, diagnostic BIOS/matériel, automatisation via scripts et contrôles techniques.",
+isJob:true
+ },
+  { period:"2025 - 2026",         side:"left",  title:"Master 2 Cybersécurité",                                   org:"Nexa Digital School de Paris France",     desc:"Spécialisation en cybersécurité offensive, administration systèmes, réseaux sécurisés et cloud." },
+  { period:"2025",                side:"right", title:"Master 1 Chef Projet Cybersécurité",                       org:"Cyber Management School de Paris France", desc:"Gouvernance cybersécurité, gestion des risques et sécurité des systèmes d'information." },
+  { period:"2023 - 2024",         side:"left",  title:"Licence Administration Systèmes & DevOps",                 org:"École IT Orléans France",                 desc:"Administration Linux/Windows, virtualisation, cloud computing et automatisation." },
+  { period:"2021 - 2022",         side:"right", title:"DEC Réseautique & Sécurité Informatique",                  org:"CCNB - Canada",                           desc:"Fondamentaux réseaux, sécurité et infrastructure." },
+  { period:"Mai - Oct 2022",      side:"left",  title:"Stage Administrateur Systèmes & Réseaux",                  org:"Edil Techno",                             desc:"Administration Linux/Windows Server, gestion AD & GPO, déploiement Nessus, scripts PowerShell/Bash/Python, supervision infrastructure.", isJob:true },
+  { period:"Octobre - Juin 2021", side:"right", title:"L1 Science économiques et gestion appliquées",             org:"Université de Douala - Douala",           desc:"Formation en économie, gestion et analyse des organisations. Acquisition des fondamentaux en management, comptabilité, statistiques." },
 ];
 
 const CERTS: Cert[] = [
-  { icon:"🛡️", title:"CCNA",  sub:"Cisco Certified Network Associate",    done:true  },
-  { icon:"🔐", title:"CEH",   sub:"Certified Ethical Hacker (CISCO)",      done:true  },
-  { icon:"⚡", title:"ADRTS", sub:"Active Directory Red Team Specialist",  done:false },
+  {
+    image: "/images/certs/adrts.jpeg",
+    title: "AD-RTS",
+    sub: "Active Directory Red Team Specialist",
+    done: true,
+    url: "", // TODO: lien vers le badge / la preuve de certification (Credly, TryHackMe, etc.)
+  },
+  {
+    image: "/images/certs/cllmsp.png",
+    title: "CLLMSP",
+    sub: "Certified LLM Security Professional",
+    done: true,
+    url: "", // TODO: lien vers le badge / la preuve de certification
+  },
+  {
+    image: "/images/certs/ccna.jpg",
+    title: "CCNA",
+    sub: "Cisco Certified Network Associate",
+    done: true,
+    url: "", // TODO: lien vers le badge / la preuve de certification
+  },
 ];
 
 const STATS: Stat[] = [
   { value:"228+", label:"Pièces achevées TryHackMe" },
-  { value:"7+",   label:"Certificats de complétion"  },
+  { value:"8+",   label:"Certificats de complétion"  },
   { value:"25+",  label:"Projets GitHub"             },
   { value:"3",    label:"Certifications"             },
   { value:"150+", label:"Machines CTF"               },
@@ -256,16 +287,16 @@ const STATS: Stat[] = [
 
 const TERMINAL_LINES: TerminalLine[] = [
   { prompt:true,  text:"whoami" },
-  { prompt:false, text:"Hackthus",                                                             color:"text-green-400" },
+  { prompt:false, text:"Hackthus", color:"text-green-400" },
   { prompt:true,  text:"certifications --list" },
-  { prompt:false, text:"CCNA  •  CEH  •  ADRTS (in progress)",                                color:"text-gray-300"  },
+  { prompt:false, text:"•  Active Directory Red Team Specialist  •  Cisco Certified Network Associate  •  Certified Ethical Hacker", color:"text-gray-300"  },
   { prompt:true,  text:"skills --top" },
-  { prompt:false, text:"Linux  •  Windows  •  Active Directory  •  Pentest  •  SOC  •  Cloud", color:"text-gray-300"  },
+  { prompt:false, text:"Linux  •  Windows  •  Active Directory  •  Pentest  •  SOC", color:"text-gray-300"  },
   { prompt:true,  text:"status" },
-  { prompt:false, text:"[DISPONIBLE]",                                color:"text-green-400", pulse:true },
+  { prompt:false, text:"[DISPONIBLE]", color:"text-green-400", pulse:true },
 ];
 
-const FILTERS: string[] = ["Tous","Pentest","Linux","Python","Cloud","Documentation"];
+const FILTERS: string[] = ["Tous","Pentest","Linux","Python","Docker","Documentation"];
 
 const AUTODIDACTE: string[] = [
   "TryHackMe – Sécurité des IA (en cours)",
@@ -278,7 +309,7 @@ const AUTODIDACTE: string[] = [
 
 // ─── ScrollProgress ───────────────────────────────────────────────────────────
 
-function ScrollProgress(): React.ReactElement {
+function ScrollProgress(): ReactElement {
   const [progress, setProgress] = useState<number>(0);
 
   useEffect(() => {
@@ -286,12 +317,13 @@ function ScrollProgress(): React.ReactElement {
       const h = document.documentElement.scrollHeight - window.innerHeight;
       setProgress(h > 0 ? (window.scrollY / h) * 100 : 0);
     };
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-transparent">
+    <div className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-transparent" role="presentation">
       <div className="h-full bg-cyan-400 transition-all duration-100" style={{ width: `${progress}%` }} />
     </div>
   );
@@ -299,7 +331,7 @@ function ScrollProgress(): React.ReactElement {
 
 // ─── Counter ─────────────────────────────────────────────────────────────────
 
-function Counter({ value, label }: Stat): React.ReactElement {
+function Counter({ value, label }: Stat): ReactElement {
   const ref                        = useRef<HTMLDivElement>(null);
   const inView                     = useInView(ref, { once: true });
   const [count, setCount]          = useState<string>("0");
@@ -328,7 +360,7 @@ function Counter({ value, label }: Stat): React.ReactElement {
 
 // ─── Navbar ──────────────────────────────────────────────────────────────────
 
-function Navbar(): React.ReactElement {
+function Navbar(): ReactElement {
   const [open,    setOpen]    = useState<boolean>(false);
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [active,  setActive]  = useState<string>("");
@@ -352,14 +384,19 @@ function Navbar(): React.ReactElement {
   return (
     <nav className={`fixed top-2 left-0 right-0 z-40 transition-all duration-500 ${scrolled ? "px-4" : "px-0"}`}>
       <div className={`mx-auto max-w-6xl flex items-center justify-between px-6 py-4 transition-all duration-500 ${scrolled ? "rounded-2xl border border-white/10 bg-black/80 backdrop-blur-2xl shadow-2xl shadow-black/30" : "border-b border-white/5"}`}>
-        <a href="#" className="flex items-center gap-2 text-cyan-400 font-black text-xl tracking-widest">
+        <a href="#" className="flex items-center gap-2 text-cyan-400 font-black text-xl tracking-widest rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
           <Shield size={22} className="drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
           HACKTHUS
         </a>
 
         <div className="hidden md:flex gap-6 text-sm">
           {NAV_LINKS.map(l => (
-            <a key={l.href} href={l.href} className={`transition-all duration-300 font-mono ${active === l.href ? "text-cyan-400" : "text-gray-400 hover:text-white"}`}>
+            <a
+              key={l.href}
+              href={l.href}
+              aria-current={active === l.href ? "page" : undefined}
+              className={`transition-all duration-300 font-mono rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${active === l.href ? "text-cyan-400" : "text-gray-400 hover:text-white"}`}
+            >
               {active === l.href && <span className="text-cyan-500 mr-1">›</span>}
               {l.label}
             </a>
@@ -367,11 +404,16 @@ function Navbar(): React.ReactElement {
         </div>
 
         <a href={CV_URL} download="CV-Arnold-Edwin-FOMEDONG.pdf"
-          className="hidden md:flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-sm px-4 py-2 rounded-xl hover:bg-cyan-400 hover:text-black transition-all duration-300">
+          className="hidden md:flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 text-sm px-4 py-2 rounded-xl hover:bg-cyan-400 hover:text-black transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
           <Download size={14} /> Télécharger CV
         </a>
 
-        <button className="md:hidden text-gray-400 hover:text-white" onClick={() => setOpen(o => !o)} aria-label="Menu">
+        <button
+          className="md:hidden text-gray-400 hover:text-white rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          onClick={() => setOpen(o => !o)}
+          aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={open}
+        >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
@@ -397,7 +439,7 @@ function Navbar(): React.ReactElement {
 
 // ─── HeroTerminal ─────────────────────────────────────────────────────────────
 
-function HeroTerminal(): React.ReactElement {
+function HeroTerminal(): ReactElement {
   const [visible, setVisible] = useState<number>(0);
 
   useEffect(() => {
@@ -409,7 +451,7 @@ function HeroTerminal(): React.ReactElement {
   return (
     <div className="mt-16 w-full max-w-2xl rounded-2xl border border-cyan-500/20 bg-black/70 backdrop-blur-2xl overflow-hidden shadow-2xl shadow-cyan-500/10 font-mono text-sm">
       <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-white/[0.02]">
-        <div className="flex gap-2">
+        <div className="flex gap-2" aria-hidden="true">
           <div className="w-3 h-3 rounded-full bg-red-500/80" />
           <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
           <div className="w-3 h-3 rounded-full bg-green-500/80" />
@@ -418,15 +460,15 @@ function HeroTerminal(): React.ReactElement {
           <Terminal size={12} /> hackthus@kali:~$
         </div>
       </div>
-      <div className="p-5 space-y-1.5 min-h-[180px]">
+      <div className="p-5 space-y-1.5 min-h-[180px]" aria-live="polite">
         {TERMINAL_LINES.slice(0, visible).map((line, i) => (
           <p key={i} className={line.prompt ? "text-cyan-400" : (line.color ?? "text-gray-300")}>
             {line.prompt && <span className="text-gray-600 mr-2">$</span>}
-            <span className={line.pulse ? "animate-pulse" : ""}>{line.text}</span>
+            <span className={line.pulse ? "animate-pulse motion-reduce:animate-none" : ""}>{line.text}</span>
           </p>
         ))}
         {visible < TERMINAL_LINES.length && (
-          <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse" />
+          <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
         )}
       </div>
     </div>
@@ -435,12 +477,12 @@ function HeroTerminal(): React.ReactElement {
 
 // ─── ProfilePhoto ─────────────────────────────────────────────────────────────
 
-function ProfilePhoto(): React.ReactElement {
+function ProfilePhoto(): ReactElement {
   const [hasError, setHasError] = useState<boolean>(false);
 
   const ring = (
     <>
-      <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-cyan-400 animate-spin [animation-duration:4s] opacity-70" />
+      <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-cyan-400 via-blue-500 to-cyan-400 animate-spin motion-reduce:animate-none [animation-duration:4s] opacity-70" />
       <div className="absolute rounded-full bg-black" style={{ inset: "3px" }} />
     </>
   );
@@ -477,18 +519,25 @@ function ProfilePhoto(): React.ReactElement {
 
 // ─── ContactForm ──────────────────────────────────────────────────────────────
 
-function ContactForm(): React.ReactElement {
-  const [form,   setForm]   = useState<FormState>({ name:"", email:"", message:"" });
+function ContactForm(): ReactElement {
+  const [form,   setForm]   = useState<FormState>({ name:"", email:"", message:"", website:"" });
   const [status, setStatus] = useState<FormStatus>("idle");
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+
+    // Piège à bots : si ce champ caché est rempli, on ignore silencieusement l'envoi.
+    if (form.website) {
+      setStatus("success");
+      return;
+    }
+
     setStatus("sending");
     try {
       const res = await fetch("https://formspree.io/f/xnjrrjag", {
         method:  "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body:    JSON.stringify(form),
+        body:    JSON.stringify({ name: form.name, email: form.email, message: form.message }),
       });
       setStatus(res.ok ? "success" : "error");
     } catch {
@@ -498,12 +547,12 @@ function ContactForm(): React.ReactElement {
 
   if (status === "success") {
     return (
-      <div className="rounded-3xl border border-green-500/30 bg-green-500/10 backdrop-blur-xl p-10 flex flex-col items-center justify-center gap-4 min-h-[400px]">
+      <div className="rounded-3xl border border-green-500/30 bg-green-500/10 backdrop-blur-xl p-10 flex flex-col items-center justify-center gap-4 min-h-[400px]" role="status">
         <CheckCircle size={52} className="text-green-400" />
         <h3 className="text-2xl font-bold">Message envoyé !</h3>
         <p className="text-gray-400 text-center">Je vous répondrai dans les plus brefs délais.</p>
-        <button onClick={() => { setStatus("idle"); setForm({ name:"", email:"", message:"" }); }}
-          className="mt-4 border border-white/10 px-6 py-3 rounded-xl hover:border-cyan-400 hover:text-cyan-400 transition">
+        <button onClick={() => { setStatus("idle"); setForm({ name:"", email:"", message:"", website:"" }); }}
+          className="mt-4 border border-white/10 px-6 py-3 rounded-xl hover:border-cyan-400 hover:text-cyan-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
           Envoyer un autre message
         </button>
       </div>
@@ -511,33 +560,47 @@ function ContactForm(): React.ReactElement {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-10">
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-10" noValidate>
       <div className="space-y-6">
         <div>
-          <label className="block mb-3 text-sm text-gray-400">Nom</label>
-          <input type="text" placeholder="Votre nom" value={form.name} required
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, name: e.target.value }))}
+          <label htmlFor="contact-name" className="block mb-3 text-sm text-gray-400">Nom</label>
+          <input id="contact-name" type="text" placeholder="Votre nom" value={form.name} required
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, name: e.target.value }))}
             className="w-full rounded-2xl bg-black/40 border border-white/10 px-5 py-4 outline-none focus:border-cyan-400 transition text-white placeholder-gray-600" />
         </div>
         <div>
-          <label className="block mb-3 text-sm text-gray-400">Email</label>
-          <input type="email" placeholder="Votre email" value={form.email} required
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, email: e.target.value }))}
+          <label htmlFor="contact-email" className="block mb-3 text-sm text-gray-400">Email</label>
+          <input id="contact-email" type="email" placeholder="Votre email" value={form.email} required
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, email: e.target.value }))}
             className="w-full rounded-2xl bg-black/40 border border-white/10 px-5 py-4 outline-none focus:border-cyan-400 transition text-white placeholder-gray-600" />
         </div>
         <div>
-          <label className="block mb-3 text-sm text-gray-400">Message</label>
-          <textarea rows={5} placeholder="Votre message..." value={form.message} required
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setForm(f => ({ ...f, message: e.target.value }))}
+          <label htmlFor="contact-message" className="block mb-3 text-sm text-gray-400">Message</label>
+          <textarea id="contact-message" rows={5} placeholder="Votre message..." value={form.message} required
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setForm(f => ({ ...f, message: e.target.value }))}
             className="w-full rounded-2xl bg-black/40 border border-white/10 px-5 py-4 outline-none focus:border-cyan-400 transition resize-none text-white placeholder-gray-600" />
         </div>
+
+        {/* Honeypot — invisible pour les humains, souvent rempli par les bots */}
+        <div className="hidden" aria-hidden="true">
+          <label htmlFor="contact-website">Ne pas remplir</label>
+          <input
+            id="contact-website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={form.website}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, website: e.target.value }))}
+          />
+        </div>
+
         {status === "error" && (
-          <p className="text-red-400 text-sm">Une erreur est survenue. Essayez par email directement.</p>
+          <p className="text-red-400 text-sm" role="alert">Une erreur est survenue. Essayez par email directement.</p>
         )}
         <button type="submit" disabled={status === "sending"}
-          className="w-full flex items-center justify-center gap-2 bg-cyan-400 text-black font-bold py-4 rounded-2xl hover:bg-cyan-300 transition disabled:opacity-60 disabled:cursor-not-allowed">
+          className="w-full flex items-center justify-center gap-2 bg-cyan-400 text-black font-bold py-4 rounded-2xl hover:bg-cyan-300 transition disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
           {status === "sending"
-            ? <span className="animate-pulse">Envoi en cours...</span>
+            ? <span className="animate-pulse motion-reduce:animate-none">Envoi en cours...</span>
             : <> Envoyer le message <ArrowRight size={16} /> </>
           }
         </button>
@@ -548,7 +611,7 @@ function ContactForm(): React.ReactElement {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function Home(): React.ReactElement {
+export default function Home(): ReactElement {
   const [filter, setFilter] = useState<string>("Tous");
 
   const filteredProjects = PROJECTS.filter(p =>
@@ -557,10 +620,17 @@ export default function Home(): React.ReactElement {
 
   return (
     <main className="relative min-h-screen bg-black text-white overflow-hidden font-sans">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:bg-cyan-400 focus:text-black focus:px-4 focus:py-2 focus:rounded-xl focus:font-bold"
+      >
+        Aller au contenu principal
+      </a>
+
       <ScrollProgress />
 
       {/* Background */}
-      <div className="pointer-events-none">
+      <div className="pointer-events-none" aria-hidden="true">
         <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-cyan-500/10 blur-[140px] rounded-full" />
         <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[140px] rounded-full" />
         <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
@@ -568,312 +638,363 @@ export default function Home(): React.ReactElement {
 
       <Navbar />
 
-      {/* ── Hero ── */}
-      <section className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-36 pb-24">
+      <div id="main-content">
+        {/* ── Hero ── */}
+        <section className="relative z-10 flex flex-col items-center justify-center text-center px-6 pt-36 pb-24">
 
-        {/* Badge */}
-        <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.2 }} className="mb-10">
-          <span className="px-5 py-2 rounded-full border border-cyan-400/30 text-cyan-400 text-xs font-mono tracking-widest bg-cyan-400/5">
-            CYBERSECURITY ENGINEER PARIS & PÉRIPHÉRIES
-          </span>
-        </motion.div>
-
-        {/* Nom + Photo sur la même ligne, centrés */}
-        <motion.div
-          initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.4, duration:0.7 }}
-          className="flex flex-row items-center justify-center gap-6 md:gap-10"
-        >
-          <h1 className="leading-tight tracking-tight text-left">
-            <span className="block text-2xl md:text-3xl lg:text-4xl font-black">
-              Arnold Edwin
+          {/* Badge */}
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.2 }} className="mb-10">
+            <span className="px-5 py-2 rounded-full border border-cyan-400/30 text-cyan-400 text-xs font-mono tracking-widest bg-cyan-400/5">
+              MASTER CYBERSÉCURITÉ · EN RECHERCHE DE POSTE · PARIS &amp; PÉRIPHÉRIES
             </span>
-
-            <span className="block text-3xl md:text-4xl lg:text-5xl font-black text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
-              FOMEDONG
-            </span>
-          </h1>
-
-          {/*
-            ── PHOTO (inline avec le nom) ──
-            Fichier : /public/photo.png →  const PHOTO_URL = "/photo.png"
-          */}
-          <motion.div
-            initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }} transition={{ delay:0.5, duration:0.6 }}
-            className="flex-shrink-0"
-          >
-            <ProfilePhoto />
           </motion.div>
-        </motion.div>
 
-        {/* Tout le reste centré en dessous */}
-        <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.7 }}
-          className="mt-7 text-gray-400 max-w-2xl text-sm md:text-base leading-relaxed">
-          Ingénieur Systèmes, Réseaux & Cybersécurité | Administration, Pentest,
-          Active Directory, SOC & Infrastructures sécurisées.
-        </motion.p>
+          {/* Nom + Photo sur la même ligne, centrés */}
+          <motion.div
+            initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.4, duration:0.7 }}
+            className="flex flex-row items-center justify-center gap-6 md:gap-10"
+          >
+            <h1 className="leading-tight tracking-tight text-left">
+              <span className="block text-2xl md:text-3xl lg:text-4xl font-black">
+                Arnold Edwin
+              </span>
 
-        <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.9 }}
-          className="flex flex-wrap gap-3 mt-8 justify-center">
-          <a href="#projects" className="group flex items-center gap-2 bg-cyan-400 text-black px-6 py-3 rounded-2xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-cyan-500/20 text-sm">
-            Voir les projets <ArrowRight size={15} className="group-hover:translate-x-1 transition" />
-          </a>
-          {/*
-            ── BOUTON CV (Hero) ──
-            Fichier : /public/CV-Arnold-Edwin-FOMEDONG.pdf
-            Constante : CV_URL (en haut du fichier)
-          */}
-          <a href={CV_URL} download="CV-Arnold-Edwin-FOMEDONG.pdf"
-            className="group flex items-center gap-2 border border-cyan-400/40 bg-cyan-400/5 text-cyan-400 px-6 py-3 rounded-2xl font-bold hover:bg-cyan-400 hover:text-black transition-all text-sm">
-            <Download size={15} className="group-hover:animate-bounce" /> Télécharger CV
-          </a>
-          <a href="mailto:arnoldedwinpro@gmail.com"
-            className="flex items-center gap-2 border border-white/10 bg-white/5 backdrop-blur px-6 py-3 rounded-2xl hover:border-cyan-400 hover:text-cyan-400 transition-all text-sm">
-            <Mail size={15} /> M'écrire
-          </a>
-        </motion.div>
+              <span className="block text-3xl md:text-4xl lg:text-5xl font-black text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+                FOMEDONG
+              </span>
+            </h1>
 
-        <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.1 }}
-          className="flex gap-5 mt-6 text-gray-500 justify-center">
-          <a href="https://github.com/hackthus" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:text-cyan-400 transition text-xs font-mono">
-            <GitBranch size={16} /> github.com/hackthus
-          </a>
-          <a href="https://www.linkedin.com/in/arnold-edwin" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:text-cyan-400 transition text-xs font-mono">
-            <Link size={16} /> linkedin
-          </a>
-        </motion.div>
-
-        <motion.div initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:1.2 }}
-          className="w-full max-w-3xl mt-14">
-          <HeroTerminal />
-        </motion.div>
-
-        <a href="#about" className="mt-12 text-gray-600 hover:text-cyan-400 transition animate-bounce">
-          <ChevronDown size={28} />
-        </a>
-      </section>
-
-      {/* ── Stats ── */}
-      <section className="relative z-10 px-6 md:px-20 py-16">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-10">
-          {STATS.map(s => <Counter key={s.label} {...s} />)}
-        </div>
-      </section>
-
-      {/* ── Skills ── */}
-      <section id="about" className="relative z-10 px-6 md:px-20 py-24">
-        <div className="text-center mb-16">
-          <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">Expertise</p>
-          <h2 className="text-4xl md:text-5xl font-black">Compétences Techniques</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {SKILLS.map((s, i) => (
-            <motion.div key={s.title} initial={{ opacity:0, y:30 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay: i * 0.08 }}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-7 hover:border-cyan-400/40 transition duration-500 hover:-translate-y-1">
-              <div className="text-3xl mb-4">{s.icon}</div>
-              <h3 className="text-lg font-bold mb-4 text-white">{s.title}</h3>
-              <div className="flex flex-wrap gap-2">
-                {s.tags.map(tag => (
-                  <span key={tag} className="px-3 py-1 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-xs text-cyan-300 font-mono">{tag}</span>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-          {/* ── Projects ── */}
-      <section id="projects" className="relative z-10 px-6 md:px-20 py-24">
-        <div className="text-center mb-12">
-          <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">
-            Portfolio
-          </p>
-          <h2 className="text-4xl md:text-5xl font-black">
-            Projets Cybersécurité
-          </h2>
-        </div>
-
-        {/* FILTERS */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {FILTERS.map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-mono transition-all ${
-                filter === f
-                  ? "bg-cyan-400 text-black font-bold"
-                  : "border border-white/10 text-gray-400 hover:border-cyan-400/40 hover:text-cyan-400"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        {/* GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {filteredProjects.map((p, i) => (
+            {/*
+              ── PHOTO (inline avec le nom) ──
+              Fichier : /public/photo.png →  const PHOTO_URL = "/photo.png"
+            */}
             <motion.div
-              key={p.title}
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-              className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] backdrop-blur-xl hover:border-cyan-400/40 transition duration-500 hover:-translate-y-1 flex flex-col"
+              initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }} transition={{ delay:0.5, duration:0.6 }}
+              className="flex-shrink-0"
             >
+              <ProfilePhoto />
+            </motion.div>
+          </motion.div>
 
-              {/* IMAGE SECTION */}
-              <div className={`h-40 bg-gradient-to-br ${p.gradient} relative overflow-hidden`}>
+          {/* Tout le reste centré en dessous */}
+          <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.7 }}
+            className="mt-7 text-gray-400 max-w-2xl text-sm md:text-base leading-relaxed">
+            Étudiant en Master Ingénieur Systèmes, Réseaux &amp; Cybersécurité, actuellement à la recherche
+            d&apos;un poste en cybersécurité (stage, alternance ou premier emploi). Administration Linux/Windows,
+            Pentest, Active Directory et sécurisation d&apos;infrastructures.
+          </motion.p>
 
-                {/* IMAGE */}
-                <Image
-                  src={p.image}
-                  alt={p.title}
-                  fill
-                  className="object-cover scale-110 group-hover:scale-125 transition duration-700"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  priority={i < 2}
-                />
-              </div>
+          <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.9 }}
+            className="flex flex-wrap gap-3 mt-8 justify-center">
+            <a href="#projects" className="group flex items-center gap-2 bg-cyan-400 text-black px-6 py-3 rounded-2xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-cyan-500/20 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
+              Voir les projets <ArrowRight size={15} className="group-hover:translate-x-1 transition" />
+            </a>
+            {/*
+              ── BOUTON CV (Hero) ──
+              Fichier : /public/CV-Arnold-Edwin-FOMEDONG.pdf
+              Constante : CV_URL (en haut du fichier)
+            */}
+            <a href={CV_URL} download="CV-Arnold-Edwin-FOMEDONG.pdf"
+              className="group flex items-center gap-2 border border-cyan-400/40 bg-cyan-400/5 text-cyan-400 px-6 py-3 rounded-2xl font-bold hover:bg-cyan-400 hover:text-black transition-all text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
+              <Download size={15} className="group-hover:animate-bounce motion-reduce:group-hover:animate-none" /> Télécharger CV
+            </a>
+            <a href="mailto:arnoldedwinpro@gmail.com"
+              className="flex items-center gap-2 border border-white/10 bg-white/5 backdrop-blur px-6 py-3 rounded-2xl hover:border-cyan-400 hover:text-cyan-400 transition-all text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
+              <Mail size={15} /> M&apos;écrire
+            </a>
+          </motion.div>
 
-              {/* CONTENT */}
-              <div className="p-6 flex flex-col flex-1">
-                <h3 className="text-lg font-bold mb-2">{p.title}</h3>
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.1 }}
+            className="flex gap-5 mt-6 text-gray-500 justify-center">
+            <a href="https://github.com/hackthus" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-cyan-400 transition text-xs font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded">
+              <GitBranch size={16} /> github.com/hackthus
+            </a>
+            <a href="https://www.linkedin.com/in/arnold-edwin" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-cyan-400 transition text-xs font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded">
+              <Link size={16} /> linkedin
+            </a>
+          </motion.div>
 
-                <p className="text-gray-400 text-sm leading-relaxed mb-4 flex-1">
-                  {p.desc}
-                </p>
+          <motion.div initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:1.2 }}
+            className="w-full max-w-3xl mt-14">
+            <HeroTerminal />
+          </motion.div>
 
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {p.tags.map(t => (
-                    <span
-                      key={t}
-                      className="px-2 py-1 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-xs text-cyan-300 font-mono"
-                    >
-                      {t}
-                    </span>
+          <a href="#about" className="mt-12 text-gray-600 hover:text-cyan-400 transition animate-bounce motion-reduce:animate-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded" aria-label="Défiler vers la section suivante">
+            <ChevronDown size={28} />
+          </a>
+        </section>
+
+        {/* ── Stats ── */}
+        <section className="relative z-10 px-6 md:px-20 py-16" aria-label="Statistiques">
+          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-10">
+            {STATS.map(s => <Counter key={s.label} {...s} />)}
+          </div>
+        </section>
+
+        {/* ── Skills ── */}
+        <section id="about" className="relative z-10 px-6 md:px-20 py-24">
+          <div className="text-center mb-16">
+            <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">Expertise</p>
+            <h2 className="text-4xl md:text-5xl font-black">Compétences Techniques</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {SKILLS.map((s, i) => (
+              <motion.div key={s.title} initial={{ opacity:0, y:30 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-7 hover:border-cyan-400/40 transition duration-500 hover:-translate-y-1">
+                <div className="text-3xl mb-4" aria-hidden="true">{s.icon}</div>
+                <h3 className="text-lg font-bold mb-4 text-white">{s.title}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {s.tags.map(tag => (
+                    <span key={tag} className="px-3 py-1 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-xs text-cyan-300 font-mono">{tag}</span>
                   ))}
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
-                <a
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-mono transition"
+        {/* ── Projects ── */}
+        <section id="projects" className="relative z-10 px-6 md:px-20 py-24">
+          <div className="text-center mb-12">
+            <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">
+              Portfolio
+            </p>
+            <h2 className="text-4xl md:text-5xl font-black">
+              Projets Cybersécurité
+            </h2>
+          </div>
+
+          {/* FILTERS */}
+          <div className="flex flex-wrap justify-center gap-3 mb-12" role="group" aria-label="Filtrer les projets">
+            {FILTERS.map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                className={`px-4 py-2 rounded-xl text-sm font-mono transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+                  filter === f
+                    ? "bg-cyan-400 text-black font-bold"
+                    : "border border-white/10 text-gray-400 hover:border-cyan-400/40 hover:text-cyan-400"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          {/* GRID */}
+          {filteredProjects.length === 0 ? (
+            <p className="text-center text-gray-500 text-sm font-mono">Aucun projet ne correspond à ce filtre pour le moment.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {filteredProjects.map((p, i) => (
+                <motion.div
+                  key={p.title}
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] backdrop-blur-xl hover:border-cyan-400/40 transition duration-500 hover:-translate-y-1 flex flex-col"
                 >
-                  <ExternalLink size={14} />
-                  Voir le projet
-                </a>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-      {/* ── Experience ── */}
-      <section id="experience" className="relative z-10 px-6 md:px-20 py-24">
-        <div className="text-center mb-20">
-          <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">Career</p>
-          <h2 className="text-4xl md:text-5xl font-black">Expérience & Formations</h2>
-        </div>
-        <div className="relative max-w-5xl mx-auto">
-          <div className="absolute left-4 md:left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent" />
-          {EXPERIENCE.map(e => (
-            <motion.div key={e.title} initial={{ opacity:0, x: e.side === "left" ? -30 : 30 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }} transition={{ delay:0.1 }}
-              className={`relative mb-12 flex flex-col md:flex-row ${e.side === "right" ? "md:flex-row-reverse" : ""} items-start`}>
-              <div className="absolute left-[7px] md:left-1/2 w-4 h-4 rounded-full bg-black border-2 border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.6)] -translate-x-1/2 mt-8" />
-              <div className={`ml-10 md:ml-0 md:w-1/2 ${e.side === "left" ? "md:pr-10" : "md:pl-10"}`}>
-                <div className={`rounded-2xl border ${e.isJob ? "border-cyan-400/30 bg-cyan-400/[0.05]" : "border-white/10 bg-white/[0.03]"} backdrop-blur-xl p-7 hover:border-cyan-400/40 transition duration-500`}>
-                  <p className="text-cyan-400 text-xs font-mono mb-2">{e.period}</p>
-                  <h3 className="text-lg font-bold mb-1">{e.title}</h3>
-                  {e.isJob && <span className="inline-block mb-2 text-xs font-mono bg-cyan-400/10 text-cyan-400 px-2 py-0.5 rounded-md border border-cyan-400/20">Stage</span>}
-                  <p className="text-gray-400 text-sm mb-3">{e.org}</p>
-                  <p className="text-gray-300 text-sm leading-relaxed">{e.desc}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+                  {/* IMAGE SECTION */}
+                  <div className={`h-40 bg-gradient-to-br ${p.gradient} relative overflow-hidden`}>
+                    <Image
+                      src={p.image}
+                      alt={p.title}
+                      fill
+                      className="object-cover scale-110 group-hover:scale-125 transition duration-700"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      priority={i < 2}
+                    />
+                    <span className="absolute top-3 right-3 z-10 px-2 py-1 rounded-lg bg-black/60 backdrop-blur border border-white/10 text-[10px] font-mono text-cyan-300">
+                      {p.status}
+                    </span>
+                  </div>
 
-      {/* ── Certifications ── */}
-      <section className="relative z-10 px-6 md:px-20 py-24">
-        <div className="text-center mb-16">
-          <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">Certifications</p>
-          <h2 className="text-4xl md:text-5xl font-black">Certifications & Learning</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          {CERTS.map(c => (
-            <div key={c.title} className="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 backdrop-blur-xl p-8 text-center hover:scale-105 transition duration-500 relative">
-              {!c.done && <span className="absolute top-4 right-4 text-xs font-mono bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-lg">In progress</span>}
-              <div className="text-5xl mb-4">{c.icon}</div>
-              <h3 className="text-2xl font-black mb-2">{c.title}</h3>
-              <p className="text-gray-400 text-sm">{c.sub}</p>
-              <div className="mt-4 flex justify-center">
-                {c.done ? <CheckCircle size={18} className="text-green-400" /> : <Circle size={18} className="text-yellow-400" />}
-              </div>
+                  {/* CONTENT */}
+                  <div className="p-6 flex flex-col flex-1">
+                    <h3 className="text-lg font-bold mb-2">{p.title}</h3>
+
+                    <p className="text-gray-400 text-sm leading-relaxed mb-4 flex-1">
+                      {p.desc}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 mb-5">
+                      {p.tags.map(t => (
+                        <span
+                          key={t}
+                          className="px-2 py-1 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-xs text-cyan-300 font-mono"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+
+                    <a
+                      href={p.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"
+                    >
+                      <ExternalLink size={14} />
+                      Voir le projet
+                      <span className="sr-only"> : {p.title}</span>
+                    </a>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="max-w-4xl mx-auto mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-8">
-          <h3 className="text-lg font-bold mb-4 text-cyan-400 font-mono">Formations autodidactes</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-400">
-            {AUTODIDACTE.map(item => (
-              <div key={item} className="flex items-start gap-2">
-                <span className="text-cyan-500 mt-0.5">›</span>
-                <span>{item}</span>
+          )}
+        </section>
+
+        {/* ── Experience ── */}
+        <section id="experience" className="relative z-10 px-6 md:px-20 py-24">
+          <div className="text-center mb-20">
+            <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">Career</p>
+            <h2 className="text-4xl md:text-5xl font-black">Expérience &amp; Formations</h2>
+          </div>
+          <div className="relative max-w-5xl mx-auto">
+            <div className="absolute left-4 md:left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent" aria-hidden="true" />
+            {EXPERIENCE.map(e => (
+              <motion.div key={e.title + e.period} initial={{ opacity:0, x: e.side === "left" ? -30 : 30 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }} transition={{ delay:0.1 }}
+                className={`relative mb-12 flex flex-col md:flex-row ${e.side === "right" ? "md:flex-row-reverse" : ""} items-start`}>
+                <div className="absolute left-[7px] md:left-1/2 w-4 h-4 rounded-full bg-black border-2 border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.6)] -translate-x-1/2 mt-8" aria-hidden="true" />
+                <div className={`ml-10 md:ml-0 md:w-1/2 ${e.side === "left" ? "md:pr-10" : "md:pl-10"}`}>
+                  <div className={`rounded-2xl border ${e.isJob ? "border-cyan-400/30 bg-cyan-400/[0.05]" : "border-white/10 bg-white/[0.03]"} backdrop-blur-xl p-7 hover:border-cyan-400/40 transition duration-500`}>
+                    <p className="text-cyan-400 text-xs font-mono mb-2">{e.period}</p>
+                    <h3 className="text-lg font-bold mb-1">{e.title}</h3>
+                    {e.isJob && <span className="inline-block mb-2 text-xs font-mono bg-cyan-400/10 text-cyan-400 px-2 py-0.5 rounded-md border border-cyan-400/20">Stage</span>}
+                    <p className="text-gray-400 text-sm mb-3">{e.org}</p>
+                    <p className="text-gray-300 text-sm leading-relaxed">{e.desc}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Certifications ── */}
+        <section id="certifications" className="relative z-10 px-6 md:px-20 py-24" aria-label="Certifications">
+          <div className="text-center mb-16">
+            <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">
+              Certifications
+            </p>
+            <h2 className="text-4xl md:text-5xl font-black">
+              Certifications
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {CERTS.map((c) => (
+              <div
+                key={c.title}
+                className="group relative rounded-3xl border-2 border-cyan-400/30 bg-gradient-to-b from-cyan-400/[0.07] to-white/[0.02] backdrop-blur-xl p-8 text-center hover:border-cyan-400 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-500"
+              >
+                {/* Ruban statut */}
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-cyan-400 text-black text-xs font-black tracking-wide shadow-lg shadow-cyan-500/40">
+                  {c.done ? <CheckCircle size={13} aria-hidden="true" /> : <Circle size={13} aria-hidden="true" />}
+                  {c.done ? "CERTIFIÉ" : "EN COURS"}
+                </span>
+
+                <div className="flex justify-center mt-4 mb-6">
+                  <div className="relative w-full h-52 rounded-2xl overflow-hidden border-2 border-cyan-400/30 bg-white shadow-xl group-hover:border-cyan-400/60 transition-all duration-500">
+                    <Image
+                      src={c.image}
+                      alt={`Badge de certification ${c.title}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition duration-500"
+                    />
+                  </div>
+                </div>
+
+                <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-cyan-400 transition-colors duration-500">{c.title}</h3>
+
+                <p className="text-gray-400 mt-2 text-sm leading-relaxed">
+                  {c.sub}
+                </p>
+
+                {c.url && (
+                  <a
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-6 inline-flex items-center gap-2 border border-cyan-400/30 bg-cyan-400/5 text-cyan-400 text-sm font-mono font-bold px-4 py-2.5 rounded-xl hover:bg-cyan-400 hover:text-black transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                  >
+                    <ExternalLink size={14} />
+                    Voir le certificat
+                    <span className="sr-only"> : {c.title}</span>
+                  </a>
+                )}
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ── Contact ── */}
-      <section id="contact" className="relative z-10 px-6 md:px-20 py-24">
-        <div className="text-center mb-16">
-          <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">Contact</p>
-          <h2 className="text-4xl md:text-5xl font-black">Travaillons Ensemble</h2>
-          <p className="text-gray-400 mt-4 max-w-xl mx-auto text-sm">
-            Disponible pour des stages, alternances et projets en cybersécurité, administration systèmes et réseaux.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-10">
-            <h3 className="text-2xl font-bold mb-8">Informations</h3>
-            <div className="space-y-6">
-              {(
-                [
-                  { label:"Email",     value:"arnoldedwinpro@gmail.com",      href:"mailto:arnoldedwinpro@gmail.com",                icon:<Mail size={16} />     },
-                  { label:"Téléphone", value:"+33 7 44 91 47 64",             href:"tel:+33744914764",                               icon:<Phone size={16} />    },
-                  { label:"LinkedIn",  value:"linkedin.com/in/arnold-edwin",  href:"https://www.linkedin.com/in/arnold-edwin",        icon:<Link size={16} />     },
-                  { label:"GitHub",    value:"github.com/hackthus",           href:"https://github.com/hackthus",                    icon:<GitBranch size={16} /> },
-                  { label:"TryHackMe", value:"tryhackme.com/p/Hackthus",      href:"https://tryhackme.com/p/Hackthus",               icon:<Shield size={16} />   },
-                ] as { label:string; value:string; href:string; icon:React.ReactElement }[]
-              ).map(item => (
-                <div key={item.label} className="flex items-start gap-4">
-                  <span className="text-cyan-400 mt-0.5">{item.icon}</span>
-                  <div>
-                    <p className="text-gray-500 text-xs font-mono mb-1">{item.label}</p>
-                    <a href={item.href} target="_blank" rel="noopener noreferrer" className="text-gray-200 hover:text-cyan-400 transition text-sm">{item.value}</a>
-                  </div>
+          <div className="max-w-4xl mx-auto mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-8">
+            <h3 className="text-lg font-bold mb-4 text-cyan-400 font-mono">
+              Formations autodidactes
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-400">
+              {AUTODIDACTE.map((item) => (
+                <div key={item} className="flex items-start gap-2">
+                  <span className="text-cyan-500 mt-0.5" aria-hidden="true">›</span>
+                  <span>{item}</span>
                 </div>
               ))}
             </div>
-            {/*
-              ── BOUTON CV (Contact) ──
-              Fichier : /public/CV-Arnold-Edwin-FOMEDONG.pdf
-            */}
-            <a href={CV_URL} download="CV-Arnold-Edwin-FOMEDONG.pdf"
-              className="mt-8 w-full flex items-center justify-center gap-2 border border-cyan-400/30 bg-cyan-400/5 text-cyan-400 font-bold py-3.5 rounded-2xl hover:bg-cyan-400 hover:text-black transition-all duration-300">
-              <Download size={16} /> Télécharger mon CV
-            </a>
-            <div className="mt-4 p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-green-400 text-sm font-mono">Disponible pour stage - 2026</span>
-            </div>
           </div>
-          <ContactForm />
-        </div>
-      </section>
+        </section>
+
+        {/* ── Contact ── */}
+        <section id="contact" className="relative z-10 px-6 md:px-20 py-24">
+          <div className="text-center mb-16">
+            <p className="text-cyan-400 uppercase tracking-[0.3em] text-xs font-mono mb-4">Contact</p>
+            <h2 className="text-4xl md:text-5xl font-black">Travaillons Ensemble</h2>
+            <p className="text-gray-400 mt-4 max-w-xl mx-auto text-sm">
+              Disponible pour des stages, alternances et projets en cybersécurité, administration systèmes et réseaux.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-10">
+              <h3 className="text-2xl font-bold mb-8">Informations</h3>
+              <div className="space-y-6">
+                {(
+                  [
+                    { label:"Email",     value:"arnoldedwinpro@gmail.com",      href:"mailto:arnoldedwinpro@gmail.com",           icon:<Mail size={16} />     },
+                    { label:"Téléphone", value:"+33 7 44 91 47 64",             href:"tel:+33744914764",                          icon:<Phone size={16} />    },
+                    { label:"LinkedIn",  value:"linkedin.com/in/arnold-edwin",  href:"https://www.linkedin.com/in/arnold-edwin",  icon:<Link size={16} />     },
+                    { label:"GitHub",    value:"github.com/hackthus",           href:"https://github.com/hackthus",               icon:<GitBranch size={16} /> },
+                    { label:"TryHackMe", value:"tryhackme.com/p/Hackthus",      href:"https://tryhackme.com/p/Hackthus",          icon:<Shield size={16} />   },
+                  ] as { label:string; value:string; href:string; icon:ReactElement }[]
+                ).map(item => (
+                  <div key={item.label} className="flex items-start gap-4">
+                    <span className="text-cyan-400 mt-0.5" aria-hidden="true">{item.icon}</span>
+                    <div>
+                      <p className="text-gray-500 text-xs font-mono mb-1">{item.label}</p>
+                      <a href={item.href} target={item.href.startsWith("http") ? "_blank" : undefined} rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined} className="text-gray-200 hover:text-cyan-400 transition text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded">{item.value}</a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/*
+                ── BOUTON CV (Contact) ──
+                Fichier : /public/CV-Arnold-Edwin-FOMEDONG.pdf
+              */}
+              <a href={CV_URL} download="CV-Arnold-Edwin-FOMEDONG.pdf"
+                className="mt-8 w-full flex items-center justify-center gap-2 border border-cyan-400/30 bg-cyan-400/5 text-cyan-400 font-bold py-3.5 rounded-2xl hover:bg-cyan-400 hover:text-black transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
+                <Download size={16} /> Télécharger mon CV
+              </a>
+              <div className="mt-4 p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+                <span className="text-green-400 text-sm font-mono">Disponible</span>
+              </div>
+            </div>
+            <ContactForm />
+          </div>
+        </section>
+      </div>
 
       {/* ── Footer ── */}
       <footer className="relative z-10 border-t border-white/10 py-10 px-6 md:px-20">
@@ -884,11 +1005,11 @@ export default function Home(): React.ReactElement {
           <p className="text-gray-600 text-xs font-mono">© 2026 Arnold Edwin FOMEDONG - Cybersecurity Engineer</p>
           <div className="flex gap-4 items-center">
             {/* ── CV Footer ── */}
-            <a href={CV_URL} download="CV-Arnold-Edwin-FOMEDONG.pdf" className="text-gray-600 hover:text-cyan-400 transition flex items-center gap-1 text-xs font-mono">
+            <a href={CV_URL} download="CV-Arnold-Edwin-FOMEDONG.pdf" className="text-gray-600 hover:text-cyan-400 transition flex items-center gap-1 text-xs font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded">
               <Download size={14} /> CV
             </a>
-            <a href="https://github.com/hackthus" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-cyan-400 transition"><GitBranch size={18} /></a>
-            <a href="https://www.linkedin.com/in/arnold-edwin" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-cyan-400 transition"><Link size={18} /></a>
+            <a href="https://github.com/hackthus" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-gray-600 hover:text-cyan-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"><GitBranch size={18} /></a>
+            <a href="https://www.linkedin.com/in/arnold-edwin" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-600 hover:text-cyan-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded"><Link size={18} /></a>
           </div>
         </div>
       </footer>
