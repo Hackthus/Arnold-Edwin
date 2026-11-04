@@ -454,7 +454,7 @@ export default function Home(): ReactElement {
 
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="mt-7 text-gray-400 max-w-2xl text-sm md:text-base leading-relaxed">
               Jeune diplômé en Ingénierie Systèmes, Réseaux et Cybersécurité, je recherche un poste d&apos;administrateur
-              systèmes et réseaux. Déploiement et support N1–N3, Windows Server/Linux, Active Directory, réseaux
+              systèmes et réseaux. Déploiement et support N1-N3, Windows Server/Linux, Active Directory, réseaux
               segmentés et durcissement : je fais fonctionner le système d&apos;information et je le sécurise.
             </motion.p>
 
