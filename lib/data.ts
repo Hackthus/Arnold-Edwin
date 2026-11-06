@@ -139,11 +139,13 @@ export const CERTS: Cert[] = [
   { image: "/images/certs/adrts.jpeg", title: "ADRTS", sub: "Certified Active Directory Red Team Specialist", issuer: "", done: true, credentialId: "", verifyUrl: "https://labs.cyberwarfare.live/credential/achievement/6a424533265336623faedad6" },
   { image: "/images/certs/cllmsp.png", title: "CLLMSP", sub: "Certified LLM Security Professional", issuer: "", done: true, credentialId: "", verifyUrl: "https://courses.redteamleaders.com/exam-completion/daac95c65d63bb89" },
   { image: "/images/certs/ccna.jpg", title: "CCNA", sub: "Cisco Certified Network Associate", issuer: "Cisco", done: true, credentialId: "", verifyUrl: "https://www.credly.com/earner/earned/badge/3bacbcd7-578f-4387-b576-e8adfe9479cc" },
+  { image: "/images/certs/btf.png", title: "BTF", sub: "Certified Blue Team Fundamentals", issuer: "", done: true, credentialId: "", verifyUrl: "https://labs.cyberwarfare.live/credential/achievement/6aedea4b206a82a1584001a8" },
   { image: "/images/certs/av-edr-evasion.png", title: "AV/EDR", sub: "AV/EDR Evasion Practical Techniques", issuer: "", done: true, credentialId: "", verifyUrl: "https://courses.redteamleaders.com/completion/155dd44fac7044f1" },
+  
 ];
 
 export const STATS: Stat[] = [
-  { value: "3", label: "Certifications" },
+  { value: "5", label: "Certifications" },
   { value: "2", label: "Expériences pro" },
   { value: "30+", label: "Projets GitHub" },
   { value: 'Top1%', label: "Classement TryHackMe" },
