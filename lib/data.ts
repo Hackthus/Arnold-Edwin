@@ -55,7 +55,7 @@ export const NAV_LINKS: NavLink[] = [
 
 // Ce que l'employeur gagne — chaque bloc renvoie à une preuve réelle (CV / projets).
 export const OFFER: Offer[] = [
-  { title: "Déploiement & support N1–N3", text: "Postes Windows 11, déploiement PXE/Proxmox, diagnostic matériel, logiciel et BIOS, documentation des interventions.", proof: "METM : Technicien Support N1/N2/N3" },
+  { title: "Déploiement & support N1–N3", text: "déploiement et configuration Postes de travaille, switchs, imprimantes, diagnostic matériel, logiciel et réseaux, administration des systèmes linux, documentation des interventions.", proof: "METM : Technicien Support N1/N2/N3" },
   { title: "Windows Server, Linux & Active Directory", text: "Comptes, groupes, droits d'accès, GPO, sauvegarde et restauration, supervision de la disponibilité.", proof: "Edil Techno . ADRTS . Licence Administrateur Systèmes & DevOps" },
   { title: "Réseaux segmentés et sécurisés", text: "VLAN, firewall, VPN, DNS/DHCP, routage et switching, diagnostic réseau.", proof: "CCNA · DEC en Réseautique et Sécurité Informatique  · projet Zero Trust" },
   { title: "Durcissement & détection", text: "Durcissement système, MFA SSH, gestion des identités (IAM), SIEM/IDS/IPS, analyse de vulnérabilités.", proof: "Projets MFA Linux Server, Zero Trust et IAM Authentik/OPA" },
@@ -86,18 +86,57 @@ export const SKILLS: Skill[] = [
 
 // Les projets "défensifs / infra" passent en premier ; les 3 ★ sont les plus pertinents pour la cible.
 export const PROJECTS: Project[] = [
-  { image: "/images/zero-trust.png", gradient: "from-cyan-500/20 to-blue-500/10", title: "Zero Trust Network", status: "Terminé", category: "Systèmes & Réseaux", featured: true, tags: ["VPN", "Firewall", "Linux", "Networking"], desc: "Infrastructure réseau sécurisée avec segmentation, VPN, firewall et architecture Zero Trust complète.", url: "https://github.com/Hackthus/Zero-Trust" },
+  { image: "/images/zero-trust.png", gradient: "from-cyan-500/20 to-blue-500/10", title: "Zero Trust Network", status: "Terminé", category: "Systèmes & Réseaux", featured: true, tags: ["VPN", "Firewall", "Linux", "Networking", "Active Directory", "Openvpn", "Windows server", "Pfsense", "VMware"], desc: "Infrastructure réseau sécurisée avec segmentation, VPN, firewall, Integration Active directory et Gestion des droits et accès des utilisateurs aux ressources du réseau.", url: "https://github.com/Hackthus/Zero-Trust" },
   { image: "/images/iam-authentik-architecture.png", gradient: "from-emerald-500/20 to-cyan-500/10", title: "Modern IAM Platform with Authentik & OPA", status: "Terminé", category: "Sécurité défensive", featured: true, tags: ["Docker Compose", "Authentik", "OpenID Connect", "OAuth2", "Open Policy Agent", "RBAC"], desc: "Plateforme IAM conteneurisée : Authentik comme fournisseur d'identité, OAuth2/OpenID Connect, JWT sécurisés, API Flask protégée et OPA pour un contrôle d'accès RBAC externalisé.", url: "https://github.com/Hackthus/iam-lab" },
+  {
+  image: "/images/cybersecurity-wiki.png",
+  gradient: "from-cyan-500/20 to-purple-500/10",
+  title: "Cybersecurity Wiki",
+  status: "En cours",
+  category: "Offensif & CTF",
+  featured: true,
+  tags: [
+    "Cybersecurity",
+    "Pentesting",
+    "Active Directory",
+    "Linux",
+    "Windows",
+    "Networking",
+    "CTF"
+  ],
+  desc: "Plateforme collaborative de documentation et de partage de connaissances en cybersécurité offensive. Centralisation de ressources techniques, de méthodologies de pentesting, d'exploitation de vulnérabilités et de scénarios pratiques autour de Windows, Linux, Active Directory et des infrastructures réseau.",
+  url: "https://hackthus.github.io/The-Hackers-237"
+},
+
   { image: "/images/mfa-linux-server.png", gradient: "from-green-500/20 to-cyan-500/10", title: "MFA Linux Server", status: "Terminé", category: "Sécurité défensive", featured: true, tags: ["Linux", "SSH", "MFA", "Hardening"], desc: "Sécurisation SSH Linux avec authentification multi-facteurs et durcissement système complet.", url: "https://github.com/Hackthus/MFA-Serveur-SSH-Linux/" },
   { image: "/images/docker-wordpress-stack.png", gradient: "from-sky-500/20 to-blue-500/10", title: "Docker WordPress Infrastructure", status: "Terminé", category: "Systèmes & Réseaux", tags: ["Docker", "WordPress", "Docker Compose", "MySQL", "Redis"], desc: "Infrastructure WordPress conteneurisée avec Docker Compose : MySQL, Redis, phpMyAdmin et automatisation via WP-CLI.", url: "https://github.com/Hackthus/docker-wordpress-stack" },
-  { image: "/images/biometric-security.png", gradient: "from-blue-500/20 to-purple-500/10", title: "Sécurité Biométrique Aéroportuaire", status: "Terminé", category: "Sécurité défensive", tags: ["Biométrie", "Face Recognition", "Fingerprint", "AES-256", "RGPD", "IAM"], desc: "Conception d'un système de contrôle d'accès sécurisé pour les zones sensibles aéroportuaires, combinant reconnaissance faciale et empreintes digitales, avec chiffrement des données, journalisation des accès et gestion centralisée des identités.", url: "https://github.com/Hackthus/Projet-Cyber-2025" },
-  { image: "/images/cybersecurity-wiki.png", gradient: "from-cyan-500/20 to-purple-500/10", title: "Cybersecurity Wiki", status: "En cours", category: "Offensif & CTF", featured: true, tags: ["Documentation", "Cybersecurity", "Linux", "Networking"], desc: "Wiki et documentation cybersécurité pour partage de connaissances techniques.", url: "https://hackthus.github.io/The-Hackers-237" },
-  { image: "/images/sensibilisation-cyber.png", gradient: "from-blue-500/20 to-purple-500/10", title: "Sensibilisation Cyber", status: "Terminé", category: "Sécurité défensive", tags: ["Documentation", "Awareness", "Training"], desc: "Programme de sensibilisation à la cybersécurité pour entreprises et collaborateurs.", url: "https://github.com/Hackthus/Sensibilisation-Cyber" },
+  
+  {
+    image: "/images/proxmox-backup-server.png",
+    gradient: "from-blue-500/20 to-cyan-500/10",
+    title: "Solaris Backup Infrastructure",
+    status: "Terminé",
+    category: "Systèmes & Réseaux",
+    tags: [
+      "Proxmox Backup Server",
+      "Ubuntu Server",
+      "Zabbix",
+      "Docker",
+      "Linux",
+      "Systemd",
+      "Backup & Restore",
+      "Monitoring"
+    ],
+    desc: "Conception et déploiement d'une infrastructure de sauvegarde et de restauration centralisée basée sur Proxmox Backup Server.",
+    url: "https://github.com/Hackthus/Proxmox-Backup-Serveur/blob/main/README.md"
+  },
+
+// { image: "/images/sensibilisation-cyber.png", gradient: "from-blue-500/20 to-purple-500/10", title: "Sensibilisation Cyber", status: "Terminé", category: "Sécurité défensive", tags: ["Documentation", "Awareness", "Training"], desc: "Programme de sensibilisation à la cybersécurité pour entreprises et collaborateurs.", url: "https://github.com/Hackthus/Sensibilisation-Cyber" },
   { image: "/images/wreath-network.png", gradient: "from-purple-500/20 to-cyan-500/10", title: "Wreath Network Pentest", status: "Terminé", category: "Offensif & CTF", tags: ["Active Directory", "Pentest", "Windows", "Burp Suite"], desc: "Pentest d'un environnement Windows + Web en laboratoire, avec exploitation Active Directory.", url: "https://github.com/Hackthus/Wreath-Network" },
   { image: "/images/writeups-audits.png", gradient: "from-teal-500/20 to-green-500/10", title: "WriteUps & Audits", status: "En cours", category: "Offensif & CTF", tags: ["Audit", "Report", "CTF", "HackTheBox"], desc: "Rapports d'audit, analyses de vulnérabilités et write-ups CTF selon des méthodologies professionnelles.", url: "https://github.com/Hackthus/WriteUps" },
   { image: "/images/webspider.png", gradient: "from-red-500/20 to-orange-500/10", title: "WebSpider", status: "Terminé", category: "Offensif & CTF", tags: ["Python", "Web Security", "Automation", "OWASP"], desc: "Outil Python de test automatisé de sécurité web (XSS, SQLi, IDOR).", url: "https://github.com/Hackthus/Webspider" },
-  { image: "/images/reverse-shell-generator.png", gradient: "from-purple-500/20 to-red-500/10", title: "Reverse Shell Generator", status: "Terminé", category: "Offensif & CTF", tags: ["Bash", "Pentest", "CTF", "Automation"], desc: "Générateur de reverse shells en Bash pour labs de cybersécurité, CTF, TryHackMe et Hack The Box.", url: "https://github.com/Hackthus/Reverse-Shell-Generator" },
-  // TODO: remplacer par l'URL exacte du dépôt (ici : profil GitHub)
+//  { image: "/images/reverse-shell-generator.png", gradient: "from-purple-500/20 to-red-500/10", title: "Reverse Shell Generator", status: "Terminé", category: "Offensif & CTF", tags: ["Bash", "Pentest", "CTF", "Automation"], desc: "Générateur de reverse shells en Bash pour labs de cybersécurité, CTF, TryHackMe et Hack The Box.", url: "https://github.com/Hackthus/Reverse-Shell-Generator" },
+  
   { image: "/images/osint-finder.png", gradient: "from-orange-500/20 to-red-500/10", title: "OSINT Finder", status: "Terminé", category: "Offensif & CTF", tags: ["Python", "OSINT", "Reconnaissance"], desc: "Outil d'investigation OSINT pour la collecte d'informations open-source.", url: "https://github.com/Hackthus/Finder" },
 ];
 
@@ -120,7 +159,7 @@ export const EXPERIENCE: ExperienceItem[] = [
     "Configuration et dépannage réseau : firewall, switch, routeur",
     "Automatisation des tâches d'administration (PowerShell, Bash, Python)",
     "Supervision des serveurs et équipements pour garantir la disponibilité",
-    "Sauvegarde et restauration des données",
+    "Sauvegarde et restauration des données via Proxmox Backup Serveur",
     "Documentation des interventions et mise à jour des procédures",
   ] },
 ];
@@ -136,16 +175,18 @@ export const EDUCATION: ExperienceItem[] = [
 
 // ✅ Renseigne verifyUrl (+ credentialId) pour chaque certification. Sans lien : « Vérification sur demande ».
 export const CERTS: Cert[] = [
-  { image: "/images/certs/adrts.jpeg", title: "ADRTS", sub: "Certified Active Directory Red Team Specialist", issuer: "", done: true, credentialId: "", verifyUrl: "https://labs.cyberwarfare.live/credential/achievement/6a424533265336623faedad6" },
-  { image: "/images/certs/btf.png", title: "BTF", sub: "Certified Blue Team Fundamentals", issuer: "", done: true, credentialId: "", verifyUrl: "https://labs.cyberwarfare.live/credential/achievement/6aedea4b206a82a1584001a8" },
+  
+  { image: "/images/certs/c3sa.png", title: "C3SA", sub: "Certified Cyber Security Analyst", issuer: "Cyberwarfare Labs", done: true, credentialId: "", verifyUrl: "https://labs.cyberwarfare.live/credential/achievement/6aef36d2206a82a15841015d" },
+  { image: "/images/certs/btf.png", title: "BTF", sub: "Certified Blue Team Fundamentals", issuer: "Cyberwarfare Labs", done: true, credentialId: "", verifyUrl: "https://labs.cyberwarfare.live/credential/achievement/6aedea4b206a82a1584001a8" },
   { image: "/images/certs/ccna.jpg", title: "CCNA", sub: "Cisco Certified Network Associate", issuer: "Cisco", done: true, credentialId: "", verifyUrl: "https://www.credly.com/earner/earned/badge/3bacbcd7-578f-4387-b576-e8adfe9479cc" },
-  { image: "/images/certs/cllmsp.png", title: "CLLMSP", sub: "Certified LLM Security Professional", issuer: "", done: true, credentialId: "", verifyUrl: "https://courses.redteamleaders.com/exam-completion/daac95c65d63bb89" },
-  { image: "/images/certs/av-edr-evasion.png", title: "AV/EDR", sub: "AV/EDR Evasion Practical Techniques", issuer: "", done: true, credentialId: "", verifyUrl: "https://courses.redteamleaders.com/completion/155dd44fac7044f1" },
+  { image: "/images/certs/adrts.jpeg", title: "ADRTS", sub: "Certified Active Directory Red Team Specialist", issuer: "Cyberwarfare Labs", done: true, credentialId: "", verifyUrl: "https://labs.cyberwarfare.live/credential/achievement/6a424533265336623faedad6" },
+  { image: "/images/certs/cllmsp.png", title: "CLLMSP", sub: "Certified LLM Security Professional", issuer: "Red Team Leaders", done: true, credentialId: "", verifyUrl: "https://courses.redteamleaders.com/exam-completion/daac95c65d63bb89" },
+  { image: "/images/certs/av-edr-evasion.png", title: "AV/EDR", sub: "AV/EDR Evasion Practical Techniques", issuer: "Red Team Leaders", done: true, credentialId: "", verifyUrl: "https://courses.redteamleaders.com/completion/155dd44fac7044f1" },
   
 ];
 
 export const STATS: Stat[] = [
-  { value: "5", label: "Certifications" },
+  { value: "6", label: "Certifications" },
   { value: "2", label: "Expériences pro" },
   { value: "30+", label: "Projets GitHub" },
   { value: 'Top1%', label: "Classement TryHackMe" },
@@ -159,7 +200,7 @@ export const TERMINAL_LINES: TerminalLine[] = [
   { prompt: true, text: "skills --top" },
   { prompt: false, text: "Windows Server  •  Linux  •  Active Directory  •  VLAN/VPN/Firewall  •  Proxmox/ESXi", color: "text-gray-300" },
   { prompt: true, text: "certifications --list" },
-  { prompt: false, text: "ADRTS  •  CLLMSP  •  CCNA • AV/EDR", color: "text-gray-300" },
+  { prompt: false, text: "ADRTS  • Cyber Security Analyst • Blue Team  • CLLMSP  •  CCNA • AV/EDR", color: "text-gray-300" },
   { prompt: true, text: "status" },
   { prompt: false, text: "[DISPONIBLE] Île-de-France · présentiel ou télétravail", color: "text-green-400", pulse: true },
 ];
